@@ -1,5 +1,6 @@
 package com.rillet.codingchallenge.accounting.infra
 
+import com.rillet.codingchallenge.accounting.application.RoundingStrategy
 import com.rillet.codingchallenge.accounting.application.SplitAmountsUseCase
 import com.rillet.codingchallenge.accounting.infra.dataclasses.RequestDto
 import com.rillet.codingchallenge.accounting.infra.dataclasses.ResponseDto
@@ -7,16 +8,24 @@ import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
 @RequestMapping("/amounts")
 class AmountsController(private val useCase: SplitAmountsUseCase) {
     @PostMapping
-    fun createAmounts(@RequestBody request: RequestDto): ResponseEntity<ResponseDto> {
-        val result = useCase.execute(request.amount)
+    fun createAmounts(
+            @RequestBody request: RequestDto,
+            @RequestParam(defaultValue = "LAST") strategy: String
+    ): ResponseEntity<ResponseDto> {
+        val roundingStrategy =
+                try {
+                    RoundingStrategy.valueOf(strategy.uppercase())
+                } catch (e: IllegalArgumentException) {
+                    RoundingStrategy.LAST
+                }
+        val result = useCase.execute(request.amount, roundingStrategy)
         return ResponseEntity.ok(ResponseDto.from(result))
     }
 }
-
-
