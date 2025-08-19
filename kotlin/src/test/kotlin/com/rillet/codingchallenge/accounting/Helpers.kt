@@ -12,6 +12,10 @@ fun dollars(n: Number): MonetaryAmount = Money.of(n, dollarsCurrency)
 
 fun List<MonetaryAmount>.sum(): MonetaryAmount {
     require(this.isNotEmpty())
+
+    val currencies = this.map { it.currency }.distinct()
+    require(currencies.size == 1) { "Cannot sum amounts with different currencies: $currencies" }
+
     val sum =
             this.map { it.number.numberValue(BigDecimal::class.java) }.fold(BigDecimal.ZERO) {
                     acc,
